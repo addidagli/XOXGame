@@ -7,12 +7,13 @@ const Board = () => {
   const [board, setBoard] = useState<Array<string | null>>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState<boolean>(true);
   const [moveQueue, setMoveQueue] = useState<number[]>([]);
-  const [gameReset, setGameReset] = useState<boolean>(false); // 🆕 Yeni state eklendi
+  const [gameReset, setGameReset] = useState<boolean>(false);
+  const [winningCells, setWinningCells] = useState<number[]>([]); // 🆕 Kazanan hücreler
 
-  const winner = checkWinner(board);
+  const winnerData:any = checkWinner(board);
 
   const handlePress = (index: number) => {
-    if (board[index] || winner) return;
+    if (board[index] || winnerData.winner) return;
 
     const newBoard = [...board];
     newBoard[index] = isXNext ? "X" : "O";
@@ -28,10 +29,11 @@ const Board = () => {
     setBoard(newBoard);
     setMoveQueue(newMoveQueue);
     setIsXNext(!isXNext);
-    setGameReset(false); // 🆕 Reset edildiğinde eski fading hatası olmasın
+    setGameReset(false);
 
-    if (checkWinner(newBoard)) {
-      setTimeout(() => Alert.alert(`Kazanan: ${checkWinner(newBoard)}`), 100);
+    const winnerCheck:any = checkWinner(newBoard);
+    if (winnerCheck.winner) {
+      setWinningCells(winnerCheck.winningCells); // 🆕 Kazanan hücreleri kaydet
     } else if (!newBoard.includes(null)) {
       setTimeout(() => Alert.alert("Berabere!"), 100);
     }
@@ -41,7 +43,8 @@ const Board = () => {
     setBoard(Array(9).fill(null));
     setMoveQueue([]);
     setIsXNext(true);
-    setGameReset(true); // 🆕 Bu state Cell.tsx içinde fading resetlemek için kullanılıyor
+    setGameReset(true);
+    setWinningCells([]); // 🆕 Kazanan hücreleri sıfırla
   };
 
   return (
@@ -52,7 +55,8 @@ const Board = () => {
             key={index}
             value={cell as "X" | "O" | null}
             onPress={() => handlePress(index)}
-            isFading={!gameReset && moveQueue.length >= 5 && moveQueue[0] === index} // 🆕 Reset sonrası fading sıfırlanıyor
+            isFading={!gameReset && moveQueue.length >= 5 && moveQueue[0] === index}
+            isWinning={winningCells.includes(index)} // 🆕 Kazanan hücreleri belirt
           />
         ))}
       </View>
@@ -69,14 +73,11 @@ const styles = StyleSheet.create({
     height: 300,
     flexDirection: "row",
     flexWrap: "wrap",
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderRadius: 15,
-    overflow: 'hidden',
+    overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.27,
     shadowRadius: 4.65,
     elevation: 6,
@@ -85,22 +86,19 @@ const styles = StyleSheet.create({
     marginTop: 30,
     paddingVertical: 15,
     paddingHorizontal: 30,
-    backgroundColor: '#3498db', // Klasik mavi
+    backgroundColor: "#3498db",
     borderRadius: 30,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
   resetButtonText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 18,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: "700",
+    textAlign: "center",
     letterSpacing: 1,
   },
 });
